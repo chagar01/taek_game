@@ -61,7 +61,7 @@ function getRandWords(different,count,arr) {
 
 class LImage {
 
-    constructor(src,x,y,w,h,add) {
+    constructor(src,x,y,w,h) {
 	this.x = x;
 	this.y = y;
 	this.w = w;
@@ -69,7 +69,7 @@ class LImage {
 	this.loaded = false;
 	this.img = new Image();
 	this.img.src = src;
-	if (add) LImage.images.push(this);
+	LImage.images.push(this);
     }
 
     set(x,y,w,h) {
@@ -86,21 +86,20 @@ class LImage {
 	this.h += dh;
     }
 
-    draw() {
-	ctx.drawImage(this.img,this.x,this.y,this.w,this.h);
+    draw(dctx = ctx) {
+	dctx.drawImage(this.img,this.x,this.y,this.w,this.h);
     }
 
-    drawXY(x,y,w,h) {
-	this.set(x,y,w,h);
-	this.draw();
+    animate() {
     }
+
 }
 LImage.images = [];
 
 
 class textBrick extends LImage {
     constructor(word,x,y,w,h) {
-	super("./sprites/brick.png",x,y,w,h, true);
+	super("./sprites/brick.png",x,y,w,h);
 	this.text = word;
 	this.fontSize = 40;
 	this.font = "Verdana";
@@ -112,6 +111,13 @@ class textBrick extends LImage {
 	this.maxTextHeight = Math.floor(this.h/3);
 	this.marginy = Math.floor(this.h/3);
 	this.setFont();
+	textBrick.bricks.push(this);
+	if (typeof(textBrick.offscreenCanvas) == 'undefined') {
+	    textBrick.offscreenCanvas = document.createElement('canvas');
+	    textBrick.offscreenCanvas.width = this.w;
+	    textBrick.offscreenCanvas.height = this.h;
+	    textBrick.v = 2;
+	}
     }
     
     setFont() {
@@ -120,13 +126,25 @@ class textBrick extends LImage {
     }
     
     draw() {
-	super.draw();
-	ctx.fillStyle='white';
+	let os = false; // offscreen defaults to false
+	let dctx = ctx;
+	let x = this.x;
+	let y = this.y;
+	let end = this.x+this.w;
+	if (end > canvas.width) {
+	    os = true; // if won't fit use offscreen
+	    dctx = textBrick.offscreenCanvas.getContext("2d");
+	    this.x = 0; // hacky temporarily set coords to 0;
+	    this.y = 0; 
+	}
+	
+	super.draw(dctx);
+	dctx.fillStyle='white';
 	do {
 	    this.setFont();
-            ctx.font = this.fontStr;
+            dctx.font = this.fontStr;
 	    if (!this.fontset) {
-		if (ctx.measureText(this.text).width < this.maxTextWidth &&
+		if (dctx.measureText(this.text).width < this.maxTextWidth &&
 		    this.textHeight < this.maxTextHeight)
 		{
 		    this.fontset = true;
@@ -134,141 +152,88 @@ class textBrick extends LImage {
 		}
 		this.fontSize--;
 	    }
-	} while (!this.fontSet);
+	} while (!this.fontset);
+        dctx.fillText(this.text,this.x+this.marginx,this.y+this.marginy);
 
-        ctx.fillText(this.text,this.x+this.marginx,this.y+this.marginy);
+	if (os) { // drawing offscreen
+	    this.x = x;
+	    this.y = y;
+
+	    // two images this right one
+	    let w = end-canvas.width;
+	    let rightimg = dctx.getImageData(0,0,this.w-w,this.h);
+	    // left image
+	    let leftimg = dctx.getImageData(this.w-w,0,w,this.h);
+	    
+	    ctx.putImageData(rightimg,this.x,this.y);
+	    ctx.putImageData(leftimg,0,this.y);
+	}
+	    
+    }
+
+    animate() {
+	this.x = (this.x + textBrick.v) % canvas.width;
     }
 }
+textBrick.bricks = [];
 
+class hitter extends LImage {
+    constructor(top) {
+	super("./sprites/sprite.png",
+	      Math.floor(2*canvas.width/5),
+	      backgroundy+Math.floor(backgroundh/3),
+	      Math.floor(canvas.width/5),
+	      Math.floor(backgroundh/3));
 
-/*
-const textScrollBox = {
-    dirty : true, // indicates that variouse setting need update
-    
-    cleanit(dontFitText){
-        if(this.dirty){
-             this.setFont();
-             this.getTextPos();
-             this.dirty = false;
-             if(!dontFitText){
-                 this.fitText();
-             }
-         }         
-    },
-    scrollY : 0,
-    fontSize : 24,
-    font : "Arial",
-    align : "middle",
-    scrollBox : {
-        width : 10,
-        color : "#78a",
-    },
-    fontStyle : "black",
-    brickimg  : new LImage("./sprites/brick.png",0,0,0,0,false),
-    setOptions(options){
-        Object.keys(this).forEach((key) =>{
-            if(options[key] !== undefined){
-                this[key] = options[key];
-                this.dirty = true;
+	this.v = 0;
+	this.top = top;
+	this.bottom = this.y;
+	this.keydown = false;
+	document.addEventListener('keydown', function(event) {
+            if(event.key == ' ' ) {
+		hitter.keydown = true;
             }
-        })
-    },
-    setFont(){
-        this.fontStr = this.fontSize + "px " + this.font;
-        this.textHeight = this.fontSize + Math.ceil(this.fontSize * 0.05);
-    },
-    getTextPos(){
-        if(this.align === "left"){ this.textPos = 0 }
-        else if(this.align === "right"){ this.textPos = Math.floor(this.width - this.scrollBox.width -this.fontSize / 4) }
-        else { this.textPos = Math.floor((this.width- - this.scrollBox.width) / 2) }
-    },  
-    fitText(){
-        this.cleanit(true); // MUST PASS TRUE or will recurse to call stack overflow
-	
-        ctx.font = this.fontStr;
-        ctx.textAlign = this.align;
-        ctx.textBaseline = "top";
-        var words = this.text.split(" ");
-        this.lines.length = 0;
-        var line = "";
-        var space = "";
-        while(words.length > 0){
-            var word = words.shift();
-            var width = ctx.measureText(line + space +  word).width;
-            if(width < this.width - this.scrollBox.width - this.scrollBox.width){
-                line += space + word;
-                space = " ";
+            if(event.key == 's' ) {
+	     	textBrick.v++;
+	    }
+            if(event.key == 'a' ) {
+	     	textBrick.v--;
+	    }
+	}, false);
+
+	document.addEventListener('keyup', function(event) {
+            if(event.key == ' ' ) {
+		hitter.keydown = false;
             }
+	}, false);
+    }
+    animate() {
+	if (hitter.keydown && this.v == 0) {
+	    this.v = -20;
+	}
+
+	if (this.v != 0 ) // we're animating
+	{
+	    this.y += this.v;
+	    if (this.v < 0) {
+		if (this.y < this.top) {
+		    this.y = this.top;
+		    this.v = -this.v;
+		}
+	    }
 	    else {
-                if(space === ""){ // if one word too big put it in anyways
-                    line += word;
-                }
-		else {
-                    words.unshift(word);
-                }
-                this.lines.push(line);
-                space = "";
-                line = "";
-            }
-        }
-        if(line !== ""){
-            this.lines.push(line);
-        }
-        this.maxScroll = ((this.lines.length + 0.5) * this.textHeight) - this.height;
-    },             
-    scroll(pos){
-        this.cleanit();        
-        this.scrollY = -pos;
-        if(this.scrollY > 0){
-            this.scrollY = 0;
-        }else if(this.scrollY < -this.maxScroll ){
-            this.scrollY = -this.maxScroll ;
-        }
-    },
-    render(){
-        this.cleanit(); 
-        ctx.font = this.fontStr;
-        ctx.textAlign = this.align;
-        ctx.save(); // need this to reset the clip area
-	
-        this.brickimg.drawXY(this.x,this.y,this.width,this.height);
-        ctx.beginPath();
-        ctx.rect(this.x,this.y,this.width-this.scrollBox.width,this.height);
-        ctx.clip();         
-        // Important text does not like being place at fractions of a pixel
-        // make sure you round the y pos;
-        ctx.setTransform(1,0,0,1,this.x, Math.floor(this.y + this.scrollY)); 
-        ctx.fillStyle = this.fontStyle;
-        for(var i = 0; i < this.lines.length; i ++){
-            // Important text does not like being place at fractions of a pixel
-            // make sure you round the y pos;
-            ctx.fillText(this.lines[i],this.textPos,Math.floor(i * this.textHeight));
-        }
-        ctx.restore(); // remove the clipping
+		if (this.y >= this.bottom) {
+		    this.y = this.bottom;
+		    this.v = 0;
+		}
+	    }
+	}
     }
-}     
-
-function createScrollText( text, x, y, width, height, options = {} ){
-  return Object.assign({},
-    textScrollBox,{
-        text,x, y, width, height,
-        lines : [],
-    },
-    options
-  );
 }
-*/
+hitter.keydown = false;
 
-//var scrollers = [];
 var nwords = 5;
 var keydown = false;
-var sprite;
-
-function animate() {
-    if (keydown) v = 10;
-    else v = 0;
-    sprite.transform(0,-v,0,0);
-}
 
 function doInit() {
     canvas.width = window.innerWidth;
@@ -288,18 +253,6 @@ function doInit() {
 	}
     }
 
-    document.addEventListener('keydown', function(event) {
-        if(event.key == ' ' ) {
-            keydown = true;
-        }
-    }, false);
-
-    document.addEventListener('keyup', function(event) {
-        if(event.key == ' ' ) {
-            keydown = false;
-        }
-    }, false);
-
     brickw = Math.floor(canvas.width/nwords);
     brickh = Math.floor(canvas.height/10);
 
@@ -315,14 +268,7 @@ function doInit() {
 	true
     );
 
-    sprite  = new LImage(
-	"./sprites/sprite.png",
-	Math.floor(2*canvas.width/5),
-	backgroundy+Math.floor(backgroundh/3),
-	Math.floor(canvas.width/5),
-	Math.floor(backgroundh/3),
-	true
-    );
+    hit  = new hitter(backgroundy);
     
     pair = getPair();
     warr = [];
@@ -347,8 +293,10 @@ function doInit() {
 function mainLoop(time){
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    for (i in LImage.images) { LImage.images[i].draw(); }
-    animate();
+    for (i in LImage.images) {
+	LImage.images[i].animate();
+	LImage.images[i].draw();
+    }
     requestAnimationFrame(mainLoop);
 }
 
