@@ -67,8 +67,14 @@ class LImage {
 	this.w = w;
 	this.h = h;
 	this.loaded = false;
-	this.img = new Image();
-	this.img.src = src;
+	this.currImg = 0;
+	this.imgs = [];
+	for (var s of src) {
+	    let img = new Image();
+	    img.src = s;
+	    this.imgs.push(img);
+	}
+	this.numImgs = this.imgs.length;
 	LImage.images.push(this);
     }
 
@@ -87,19 +93,30 @@ class LImage {
     }
 
     draw(dctx = ctx) {
-	dctx.drawImage(this.img,this.x,this.y,this.w,this.h);
+	dctx.drawImage(this.imgs[this.currImg],this.x,this.y,this.w,this.h);
     }
 
-    animate() {
+    animate(t) {
     }
 
+    intersect(x,y) {
+	if ((x >= this.x && x < (this.x+this.w-1)) &&
+	    (y >= this.y && y < (this.y+this.h-1))) return true;
+	return false;
+    }
 }
 LImage.images = [];
 
 
 class textBrick extends LImage {
     constructor(word,x,y,w,h) {
-	super("./sprites/brick.png",x,y,w,h);
+	super(["./sprites/brick.png",
+	       "./sprites/brick_broken1.png",
+	       "./sprites/brick_broken2.png",
+	       "./sprites/brick_broken3.png",
+	       "./sprites/brick_broken4.png",
+	       "./sprites/brick_broken5.png"],
+	      x,y,w,h);
 	this.text = word;
 	this.fontSize = 40;
 	this.font = "Verdana";
@@ -111,12 +128,12 @@ class textBrick extends LImage {
 	this.maxTextHeight = Math.floor(this.h/3);
 	this.marginy = Math.floor(this.h/3);
 	this.setFont();
+	this.hit = false;
 	textBrick.bricks.push(this);
 	if (typeof(textBrick.offscreenCanvas) == 'undefined') {
 	    textBrick.offscreenCanvas = document.createElement('canvas');
 	    textBrick.offscreenCanvas.width = this.w;
 	    textBrick.offscreenCanvas.height = this.h;
-	    textBrick.v = 2;
 	}
     }
     
@@ -153,7 +170,7 @@ class textBrick extends LImage {
 		this.fontSize--;
 	    }
 	} while (!this.fontset);
-        dctx.fillText(this.text,this.x+this.marginx,this.y+this.marginy);
+	dctx.fillText(this.text,this.x+this.marginx,this.y+this.marginy);
 
 	if (os) { // drawing offscreen
 	    this.x = x;
@@ -168,24 +185,44 @@ class textBrick extends LImage {
 	    ctx.putImageData(rightimg,this.x,this.y);
 	    ctx.putImageData(leftimg,0,this.y);
 	}
-	    
+	
     }
 
-    animate() {
+    animate(t) {
+	if (textBrick.v == 0 && this.hit) {
+	    if (!textBrick.last) textBrick.last = t;
+	    let p = t - textBrick.last;
+	    if (p > 250) {
+		textBrick.last = t;
+		this.currImg++;
+		if (this.currImg == this.numImgs) {
+		    this.currImg = 0;
+		    this.hit = false;
+		}
+	    }
+	}
 	this.x = (this.x + textBrick.v) % canvas.width;
     }
 }
+
 textBrick.bricks = [];
+textBrick.v = 2;  // 0 if we hit the right brick
+textBrick.last = null;
 
 class hitter extends LImage {
     constructor(top) {
-	super("./sprites/sprite.png",
+	super(["./sprites/fist.png",
+	       "./sprites/fisthurt.png",
+	       "./sprites/fist_flip.png",
+	       "./sprites/fisthurt_flip.png"],
 	      Math.floor(2*canvas.width/5),
 	      backgroundy+Math.floor(backgroundh/3),
 	      Math.floor(canvas.width/5),
 	      Math.floor(backgroundh/3));
 
 	this.v = 0;
+	this.hitpointx = this.x+Math.floor(0.75*this.w);
+	
 	this.top = top;
 	this.bottom = this.y;
 	this.keydown = false;
@@ -207,7 +244,16 @@ class hitter extends LImage {
             }
 	}, false);
     }
-    animate() {
+
+    // draw(dctx = ctx) {
+    // 	super.draw(ctx);
+    // 	ctx.beginPath();
+    // 	ctx.arc(this.hitpointx,this.y,5,0,2*Math.PI);
+    // 	ctx.stroke();
+    // }
+
+
+    animate(t) {
 	if (hitter.keydown && this.v == 0) {
 	    this.v = -20;
 	}
@@ -215,6 +261,16 @@ class hitter extends LImage {
 	if (this.v != 0 ) // we're animating
 	{
 	    this.y += this.v;
+
+	    for (var b  of textBrick.bricks) {
+		if (b.intersect(this.hitpointx,this.y)) {
+		    textBrick.v = 0;
+		    b.hit = true;
+		    this.currImg++;
+		    if (this.currImg == this.numImgs) this.currImg = 0;
+		}
+	    }
+	    
 	    if (this.v < 0) {
 		if (this.y < this.top) {
 		    this.y = this.top;
@@ -260,7 +316,7 @@ function doInit() {
     backgroundy = brickh+1;
 
     background  = new LImage(
-	"./sprites/background.png",
+	["./sprites/background.png"],
 	0, 
 	brickh+1,
 	canvas.width,
@@ -294,7 +350,7 @@ function mainLoop(time){
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,canvas.width,canvas.height);
     for (i in LImage.images) {
-	LImage.images[i].animate();
+	LImage.images[i].animate(time);
 	LImage.images[i].draw();
     }
     requestAnimationFrame(mainLoop);
