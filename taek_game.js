@@ -59,23 +59,12 @@ function getRandWords(different,count,arr) {
     }
 }
 
-class LImage {
-
-    constructor(src,x,y,w,h) {
+class shape {
+    constructor(x,y,w,h) {
 	this.x = x;
 	this.y = y;
 	this.w = w;
 	this.h = h;
-	this.loaded = false;
-	this.currImg = 0;
-	this.imgs = [];
-	for (var s of src) {
-	    let img = new Image();
-	    img.src = s;
-	    this.imgs.push(img);
-	}
-	this.numImgs = this.imgs.length;
-	LImage.images.push(this);
     }
 
     set(x,y,w,h) {
@@ -91,9 +80,8 @@ class LImage {
 	this.w += dw;
 	this.h += dh;
     }
-
     draw(dctx = ctx) {
-	dctx.drawImage(this.imgs[this.currImg],this.x,this.y,this.w,this.h);
+
     }
 
     animate(t) {
@@ -105,7 +93,28 @@ class LImage {
 	return false;
     }
 }
-LImage.images = [];
+shape.shapes = [];
+
+class LImage extends shape {
+
+    constructor(src,x,y,w,h) {
+	super(x,y,w,h);
+	this.currImg = 0;
+	this.imgs = [];
+	for (var s of src) {
+	    let img = new Image();
+	    img.src = s;
+	    this.imgs.push(img);
+	}
+	this.numImgs = this.imgs.length;
+	shape.shapes.push(this);
+    }
+
+    draw(dctx = ctx) {
+	dctx.drawImage(this.imgs[this.currImg],this.x,this.y,this.w,this.h);
+    }
+
+}
 
 
 class textBrick extends LImage {
@@ -210,15 +219,15 @@ textBrick.v = 2;  // 0 if we hit the right brick
 textBrick.last = null;
 
 class hitter extends LImage {
-    constructor(top) {
+    constructor(top,backh) {
 	super(["./sprites/fist.png",
 	       "./sprites/fisthurt.png",
 	       "./sprites/fist_flip.png",
 	       "./sprites/fisthurt_flip.png"],
 	      Math.floor(2*canvas.width/5),
-	      backgroundy+Math.floor(backgroundh/3),
+	      top+Math.floor(backh/3),
 	      Math.floor(canvas.width/5),
-	      Math.floor(backgroundh/3));
+	      Math.floor(backh/3));
 
 	this.v = 0;
 	this.hitpointx = this.x+Math.floor(0.75*this.w);
@@ -288,6 +297,14 @@ class hitter extends LImage {
 }
 hitter.keydown = false;
 
+
+class belt extends shape{
+    constructor(col,x,y,w,h) {
+	super(x,y,w,h);
+	this.col = col;
+    }
+}
+
 var nwords = 5;
 var keydown = false;
 
@@ -315,16 +332,23 @@ function doInit() {
     backgroundh = canvas.height-brickh-1;
     backgroundy = brickh+1;
 
-    background  = new LImage(
+    new LImage(
 	["./sprites/background.png"],
 	0, 
-	brickh+1,
-	canvas.width,
-	canvas.height-brickh-1,
-	true
+	brickh,
+	Math.floor(canvas.width/3),
+	Math.floor((canvas.height-brickh-1)/3)
     );
 
-    hit  = new hitter(backgroundy);
+    new LImage(
+	["./sprites/background.png"],
+	canvas.width-Math.floor(canvas.width/3), 
+	brickh,
+	Math.floor(canvas.width/3),
+	Math.floor((canvas.height-brickh-1)/3)
+    );
+
+    hit  = new hitter(backgroundy,backgroundh);
     
     pair = getPair();
     warr = [];
@@ -337,21 +361,14 @@ function doInit() {
     }
 }
 
-
-// function everyX(X,t,last,do) {
-//     if (t-last > X) {
-// 	last = t;
-// 	do();
-//     }
-//     return last;
-// }
-
 function mainLoop(time){
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    for (i in LImage.images) {
-	LImage.images[i].animate(time);
-	LImage.images[i].draw();
+    ctx.fillStyle="#000000";
+    ctx.fillRect(0,brickh,canvas.width,canvas.height-brickh);
+    for (i in shape.shapes) {
+	shape.shapes[i].animate(time);
+	shape.shapes[i].draw();
     }
     requestAnimationFrame(mainLoop);
 }
