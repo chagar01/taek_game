@@ -262,7 +262,14 @@ class Hitter extends LImage {
 	    let hit = Game.theGame.checkHit(this);
 	    if (hit == -1) {
 		this.currImg++;
-		if (this.currImg == this.numImgs) this.currImg = 0;
+		if (this.currImg == this.numImgs) {
+		    if (confirm("Game over!!!! Play again?")) {
+			location.reload();
+		    }
+		    else {
+			history.go(-1);
+		    }
+		}
 	    }
 	    
 	    if (this.v < 0) {
@@ -342,7 +349,7 @@ class Game {
 	this.state = 0; 
 
 	this.hits = 0;
-	this.hitsToPass = 5; // hits to move onto next belt
+	this.hitsToPass = 1; // hits to move onto next belt
 	
 	this.brickw = Math.floor(canvas.width/nwords);
 	this.brickh = Math.floor(canvas.height/10);
@@ -449,11 +456,16 @@ class Game {
 	    this.hits++;
 	    if (this.hits == this.hitsToPass) {
 		// belt up to more words required now
-		this.hitsToPass+=3;
+		this.hitsToPass+=0;
 		this.hits = 0;
 		this.beltix++;
 		if (this.beltix == taek_data.length) {
-
+		    if (confirm("Well done! you did it! Play again?")) {
+			location.reload();
+		    }
+		    else {
+			history.go(-1);
+		    }
 		}
 		this.belt.setBelt(taek_data[this.beltix]);
 		this.allwords.concat(taek_data[this.beltix].words);
@@ -463,7 +475,7 @@ class Game {
 	
 	if (state == 0 && this.state == 1) {
 	    this.setWords();
-	    TextBrick.v = this.oldV; // restart bricks
+	    TextBrick.v = this.oldV+1; // restart bricks
 	    for (var i = 0; i < this.bricks.length; i++) {
      		this.bricks[i].set(this.brickw*i, 0, this.brickw, this.brickh);
 	    }
