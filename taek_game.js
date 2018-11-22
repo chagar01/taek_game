@@ -349,7 +349,7 @@ class Game {
 	this.state = 0; 
 
 	this.hits = 0;
-	this.hitsToPass = 1; // hits to move onto next belt
+	this.hitsToPass = 3; // hits to move onto next belt
 	
 	this.brickw = Math.floor(canvas.width/nwords);
 	this.brickh = Math.floor(canvas.height/10);
@@ -456,7 +456,7 @@ class Game {
 	    this.hits++;
 	    if (this.hits == this.hitsToPass) {
 		// belt up to more words required now
-		this.hitsToPass+=0;
+		this.hitsToPass+=1;
 		this.hits = 0;
 		this.beltix++;
 		if (this.beltix == taek_data.length) {
