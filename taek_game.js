@@ -1,6 +1,6 @@
 /***
 
-MIT License
+Mit License
 
 Copyright (c) 2018 Charles Garcia-Tobin
 
@@ -23,9 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-
-var canvas = document.getElementById("myCanvas");
-var ctx = canvas.getContext("2d");
 
 function getRandomArbitrary(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
@@ -53,7 +50,7 @@ class Shape {
 	this.w += dw;
 	this.h += dh;
     }
-    draw(dctx = ctx) {
+    draw(dctx = Game.theGame.ctx) {
 
     }
 
@@ -71,43 +68,64 @@ Shape.shapes = [];
 class TextStr extends Shape {
     constructor(word,x,y,w,h, add = true, fontsize = 40, font = "Verdana") {
 	super(x,y,w,h);
-	this.text = word;
+	this.setWord(word);
 	this.fontSize = fontsize;
 	this.font = font;
 	this.align = "middle";
-	this.fontset = false;
 	this.marginx = Math.ceil(this.w*0.1);
+	this.marginy = Math.ceil(this.h*0.1);
 	this.maxTextWidth = this.w - 2*this.marginx;
-	this.maxTextHeight = Math.floor(this.h/3);
-	this.marginy = Math.floor(this.h/3);
+	this.maxTextHeight = this.h - 2*this.marginy;
 	this.setFont();
     }
 
     setFont() {
         this.fontStr = "bolder " + this.fontSize + "px " + this.font;
-        this.textHeight = this.fontSize + Math.ceil(this.fontSize * 0.05);
+	this.lineHeight = this.fontSize + Math.ceil(this.fontSize * 0.05);
+        this.textHeight = this.lines.length*this.lineHeight;
     }
 
     setWord(word) {
 	this.text = word;
+	this.lines = word.split('\n');
+	let mlen = 0;
+	let longest = "";
+	for (var l of this.lines) {
+	    if (l.length > mlen) {
+		mlen = l.length;
+		longest = l;
+	    }
+	}
+	this.maxlen = mlen;
+	this.longest = longest;
+	this.fontSet = false;
     }
 
-    draw(dctx = ctx) {
+    draw(dctx = Game.theGame.ctx) {
 	dctx.fillStyle='white';
 	do {
 	    this.setFont();
             dctx.font = this.fontStr;
-	    if (!this.fontset) {
-		if (dctx.measureText(this.text).width < this.maxTextWidth &&
+	    if (!this.fontSet) {
+		this.textWidth = dctx.measureText(this.longest).width;
+		if (this.textWidth < this.maxTextWidth &&
 		    this.textHeight < this.maxTextHeight)
 		{
-		    this.fontset = true;
+		    this.fontSet = true;
 		    break;
 		}
 		this.fontSize--;
 	    }
-	} while (!this.fontset);
-	dctx.fillText(this.text,this.x+this.marginx,this.y+this.marginy);
+	} while (!this.fontSet);
+	// center the text in height
+	let y = this.y + Math.floor((this.h-this.textHeight)*0.5); // mid y
+	y += this.lineHeight; 
+	let halfx = this.x + Math.floor(this.w*0.5); // mid x
+	let x = halfx - Math.floor(this.textWidth*0.5) // minus half text width
+	for (var l of this.lines) {
+	    dctx.fillText(l,x,y);
+	    y += this.lineHeight;
+	}
     }
 }
 
@@ -117,6 +135,7 @@ class LImage extends Shape {
 	super(x,y,w,h);
 	this.currImg = 0;
 	this.imgs = [];
+	this.visible = true;
 	for (var s of src) {
 	    let img = new Image();
 	    img.src = s;
@@ -125,10 +144,12 @@ class LImage extends Shape {
 	this.numImgs = this.imgs.length;
     }
 
-    draw(dctx = ctx) {
-	dctx.drawImage(this.imgs[this.currImg],this.x,this.y,this.w,this.h);
+    draw(dctx = Game.theGame.ctx) {
+	if (this.visible)
+	    dctx.drawImage(this.imgs[this.currImg],this.x,this.y,this.w,this.h);
     }
 
+    setVisible(v) { this.visible = v; }
 }
 
 class TextBrick extends LImage {
@@ -155,12 +176,12 @@ class TextBrick extends LImage {
     
     draw() {
 	let os = false; // offscreen defaults to false
-	let dctx = ctx;
+	let dctx = Game.theGame.ctx;
 	let x = this.x;
 	let y = this.y;
 	let end = this.x+this.w;
 
-	if (end > canvas.width) {
+	if (end > Game.theGame.canvas.width) {
 	    os = true; // if won't fit use offscreen
 	    dctx = TextBrick.offscreenCanvas.getContext("2d");
 	    this.x = 0; // hacky temporarily set coords to 0;
@@ -180,13 +201,13 @@ class TextBrick extends LImage {
 	    this.y = y;
 
 	    // two images this right one
-	    let w = end-canvas.width;
+	    let w = end-Game.theGame.canvas.width;
 	    let rightimg = dctx.getImageData(0,0,this.w-w,this.h);
 	    // left image
 	    let leftimg = dctx.getImageData(this.w-w,0,w,this.h);
 	    
-	    ctx.putImageData(rightimg,this.x,this.y);
-	    ctx.putImageData(leftimg,0,this.y);
+	    Game.theGame.ctx.putImageData(rightimg,this.x,this.y);
+	    Game.theGame.ctx.putImageData(leftimg,0,this.y);
 	}
     }
 
@@ -204,7 +225,7 @@ class TextBrick extends LImage {
 		}
 	    }
 	}
-	this.x = (this.x + TextBrick.v) % canvas.width;
+	this.x = (this.x + TextBrick.v) % Game.theGame.canvas.width;
 	this.textStr.x = this.x;
     }
 }
@@ -213,25 +234,27 @@ TextBrick.v = 2;  // 0 if we hit the right brick
 TextBrick.last = null;
 
 class Hitter extends LImage {
-    constructor(top,backh) {
-	super(["./sprites/fist.png",
-	       "./sprites/fisthurt.png",
-	       "./sprites/fist_flip.png",
-	       "./sprites/fisthurt_flip.png"],
-	      Math.floor(2*canvas.width/5),
+    constructor(hitsprites, hitpointx, top, backh) {
+	super(hitsprites,
+	      Math.floor(2*Game.theGame.canvas.width/5),
 	      top+Math.floor(backh/3),
-	      Math.floor(canvas.width/5),
+	      Math.floor(Game.theGame.canvas.width/5),
 	      Math.floor(backh/3));
 
 	this.v = 0;
-	this.hitpointx = [this.x+Math.floor(0.75*this.w),
-			  this.x+Math.floor(0.75*this.w),
-			  this.x+Math.floor(0.25*this.w),
-			  this.x+Math.floor(0.25*this.w)];
+	
+	this.hitpointx = []
+	for (var h of hitpointx) {
+	    this.hitpointx.push(this.x+Math.floor(this.w*h));
+	}
 	
 	this.top = top;
 	this.bottom = this.y;
 	this.keydown = false;
+	this.xImgList = [];
+	this.xImg  = 0;
+	this.gameOver = false;
+	
 	document.addEventListener('keydown', function(event) {
             if(event.key == ' ' ) {
 		Hitter.keydown = true;
@@ -251,6 +274,11 @@ class Hitter extends LImage {
 	}, false);
     }
 
+    addX(img) {
+	img.setVisible(false);
+	this.xImgList.push(img);
+    }
+
     animate(t) {
 	if (Hitter.keydown && this.v == 0 && Game.theGame.state == 0) {
 	    this.v = -20;
@@ -263,13 +291,15 @@ class Hitter extends LImage {
 	    if (hit == -1) {
 		this.currImg++;
 		if (this.currImg == this.numImgs) {
-		    if (confirm("Game over!!!! Play again?")) {
-			location.reload();
-		    }
-		    else {
-			history.go(-1);
-		    }
+		    // bit of hack
+		    this.gameOver = true;
 		}
+		if ((this.currImg % 2) == 0) {
+		    this.xImgList[this.xImg].setVisible(true);
+		    this.xImg += 1;
+		}
+		// bit of hack again
+		if (this.gameOver) this.currImg--;
 	    }
 	    
 	    if (this.v < 0) {
@@ -282,6 +312,15 @@ class Hitter extends LImage {
 		if (this.y >= this.bottom) {
 		    this.y = this.bottom;
 		    this.v = 0;
+		    if (this.gameOver) {
+			if (confirm("Game over!!!! Play again?")) {
+			    location.reload();
+			}
+			else {
+			    history.go(-1);
+			}
+		    }
+
 		}
 	    }
 	}
@@ -307,7 +346,7 @@ class Belt extends Shape {
 
     setBelt(belt) { this.belt = belt; }
     
-    draw(dctx = ctx) {
+    draw(dctx = Game.theGame.ctx) {
 	// first 1/3 of belt
 	dctx.fillStyle = 'red'; 
 	dctx.fillRect(this.x,this.by[0]-2,this.w,2);
@@ -332,10 +371,19 @@ class Game {
 	if (Game.theGame) return Game.theGame;
 	Game.theGame = this;
 	
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
-	let x = canvas.width/2;
-	let y = canvas.height-30;
+	this.canvas = document.getElementById("myCanvas");
+	this.ctx = Game.theGame.canvas.getContext("2d");
+
+	this.canvas.width = window.innerWidth;
+	this.canvas.height = window.innerHeight;
+
+	this.canvas.addEventListener("mousedown", Game.theGame.mouseTouchDown, false);
+	this.canvas.addEventListener("touchstart", Game.theGame.mouseTouchDown, false);
+	this.canvas.addEventListener("mouseup", Game.theGame.mouseTouchUp, false);
+	this.canvas.addEventListener("touchend", Game.theGame.mouseTouchUp, false);
+	
+	let x = this.canvas.width/2;
+	let y = this.canvas.height-30;
 	console.log(taek_data.length);
 	this.allwords = taek_data[0].words;
 	this.bwords = [];
@@ -351,38 +399,49 @@ class Game {
 	this.hits = 0;
 	this.hitsToPass = 3; // hits to move onto next belt
 	
-	this.brickw = Math.floor(canvas.width/nwords);
-	this.brickh = Math.floor(canvas.height/10);
+	this.brickw = Math.floor(this.canvas.width/nwords);
+	this.brickh = Math.floor(this.canvas.height/10);
 
-	let backgroundh = canvas.height-this.brickh-1;
+	let backgroundh = this.canvas.height-this.brickh-1;
 	let backgroundy = this.brickh+1;
 
 	new LImage(
 	    ["./sprites/background.png"],
 	    0, 
 	    this.brickh,
-	    Math.floor(canvas.width/3),
-	    Math.floor((canvas.height-this.brickh-1)/3)
+	    Math.floor(this.canvas.width/3),
+	    Math.floor((this.canvas.height-this.brickh-1)/3)
 	);
 
 	new LImage(
 	    ["./sprites/background.png"],
-	    canvas.width-Math.floor(canvas.width/3), 
+	    this.canvas.width-Math.floor(this.canvas.width/3), 
 	    this.brickh,
-	    Math.floor(canvas.width/3),
-	    Math.floor((canvas.height-this.brickh-1)/3)
+	    Math.floor(this.canvas.width/3),
+	    Math.floor((this.canvas.height-this.brickh-1)/3)
 	);
 
 	this.beltix = 0;
 	this.belt = new Belt(taek_data[this.beltix],
-			canvas.width-Math.floor(canvas.width/3),
-			this.brickh+Math.floor((canvas.height-this.brickh-1)/3),
-			Math.floor(canvas.width/3),
-			Math.floor((canvas.height-this.brickh-1)/3)
+			this.canvas.width-Math.floor(this.canvas.width/3),
+			this.brickh+Math.floor((this.canvas.height-this.brickh-1)/3),
+			Math.floor(this.canvas.width/3),
+			Math.floor((this.canvas.height-this.brickh-1)/3)
 		       );
     
+	let hitsprites = ["./sprites/fist.png",
+			  "./sprites/fisthurt.png",
+			  "./sprites/fist_flip.png",
+			  "./sprites/fisthurt_flip.png",
+			  "./sprites/fist.png",
+			  "./sprites/fisthurt.png",
+			  "./sprites/fist_flip.png",
+			  "./sprites/fisthurt_flip.png"]
 
-	this.hit  = new Hitter(backgroundy,backgroundh);
+	let hitpointsx = [0.75, 0.75, 0.25, 0.25,
+			  0.75, 0.75, 0.25, 0.25];
+	
+	this.hit  = new Hitter(hitsprites,hitpointsx,backgroundy,backgroundh);
 
 	this.bricks = [];
 	
@@ -390,12 +449,36 @@ class Game {
      	    this.bricks.push(new TextBrick("",i*this.brickw, 0, this.brickw, this.brickh));
 	}
 
+	let lastthirdh = Math.floor((this.canvas.height-this.brickh-1)/3);
+	let lastthirdy = this.brickh+2*lastthirdh;
+
 	this.textOrig = new TextStr("",
-				    canvas.width-Math.floor(canvas.width/3),
-				    this.brickh+2*Math.floor((canvas.height-this.brickh-1)/3),
-				    Math.floor(canvas.width/3),
-				    Math.floor((canvas.height-this.brickh-1)/3));
+				    this.canvas.width-Math.floor(this.canvas.width/3),
+				    lastthirdy,
+				    Math.floor(this.canvas.width/3),
+				    lastthirdh);
 	this.setWords();
+
+	new TextStr("touch screen or\nclick mouse or\npress space",
+		    0,
+		    lastthirdy,
+		    Math.floor(this.canvas.width/3),
+		    Math.floor(lastthirdh/3));
+	
+
+	// bottom middle we will have the scores for the hitters
+	x = Math.floor(this.canvas.width/3);
+	let h = Math.floor(lastthirdh/2);
+	y = lastthirdy+h;
+	let w = Math.floor(this.canvas.width/(3*4));
+
+	for (var i = 0 ; i < hitsprites.length; i+=2) {
+	    let sp = hitsprites[i];
+	    console.log(sp);
+	    new LImage([sp],x,y,w,h);
+	    this.hit.addX(new LImage(["./sprites/x.png"],x,y,w,h));
+	    x += w;
+	}
     }
 
     setWords() {
@@ -484,18 +567,24 @@ class Game {
 	}
     }
 
+    mouseTouchDown() {
+	Hitter.keydown = true;
+    }
+
+    mouseTouchUp() {
+	Hitter.keydown = false;
+    }
+
     mainLoop(time) {
-	ctx.setTransform(1,0,0,1,0,0);
-	ctx.clearRect(0,0,canvas.width,canvas.height);
-	ctx.fillStyle="#000000";
-	ctx.fillRect(0,this.brickh,canvas.width,canvas.height-this.brickh);
+	this.ctx.setTransform(1,0,0,1,0,0);
+	this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+	this.ctx.fillStyle="#000000";
+	this.ctx.fillRect(0,this.brickh,this.canvas.width,this.canvas.height-this.brickh);
 	for (var s of Shape.shapes) {
 	    s.animate(time);
 	    s.draw();
 	}
     }
-
-    
 }
 
 Game.theGame = null;
