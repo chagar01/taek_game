@@ -371,7 +371,7 @@ class Game {
 	if (Game.theGame) return Game.theGame;
 	Game.theGame = this;
 	
-	screen.orientation.lock('portrait');
+//	screen.orientation.lock('portrait');
 	this.canvas = document.getElementById("myCanvas");
 	this.ctx = Game.theGame.canvas.getContext("2d");
 
