@@ -34,6 +34,7 @@ class Shape {
 	this.y = y;
 	this.w = w;
 	this.h = h;
+	this.visible = true;
 	if (add) Shape.shapes.push(this);
     }
 
@@ -57,11 +58,15 @@ class Shape {
     animate(t) {
     }
 
+    setVisible(v) { this.visible = v; }
+
     intersect(x,y) {
 	if ((x >= this.x && x < (this.x+this.w-1)) &&
 	    (y >= this.y && y < (this.y+this.h-1))) return true;
 	return false;
     }
+
+    
 }
 Shape.shapes = [];
 
@@ -123,7 +128,8 @@ class TextStr extends Shape {
 	let halfx = this.x + Math.floor(this.w*0.5); // mid x
 	let x = halfx - Math.floor(this.textWidth*0.5) // minus half text width
 	for (var l of this.lines) {
-	    dctx.fillText(l,x,y);
+	    if (this.visible)
+		dctx.fillText(l,x,y);
 	    y += this.lineHeight;
 	}
     }
@@ -135,7 +141,6 @@ class LImage extends Shape {
 	super(x,y,w,h);
 	this.currImg = 0;
 	this.imgs = [];
-	this.visible = true;
 	for (var s of src) {
 	    let img = new Image();
 	    img.src = s;
@@ -149,7 +154,6 @@ class LImage extends Shape {
 	    dctx.drawImage(this.imgs[this.currImg],this.x,this.y,this.w,this.h);
     }
 
-    setVisible(v) { this.visible = v; }
 }
 
 class TextBrick extends LImage {
@@ -160,8 +164,8 @@ class TextBrick extends LImage {
 	       "./sprites/brick_broken3.png",
 	       "./sprites/brick_broken4.png",
 	       "./sprites/brick_broken5.png"],
-	      x,y,w,h);
-	this.textStr = new TextStr(word,x,y,w,h,false);
+	      x,y,w,h); // this will get added to shape list ahead of textstr
+	this.textStr = new TextStr(word,x,y,w,h);
 	this.hit = false;
 	if (typeof(TextBrick.offscreenCanvas) == 'undefined') {
 	    TextBrick.offscreenCanvas = document.createElement('canvas');
@@ -189,12 +193,6 @@ class TextBrick extends LImage {
 	}
 	
 	super.draw(dctx);
-	if (!this.hit) this.textStr.draw(dctx);
-
-	if (this.hit) {
-	    console.log("Hello");
-	}
-
 	
 	if (os) { // drawing offscreen
 	    this.x = x;
@@ -213,6 +211,7 @@ class TextBrick extends LImage {
 
     animate(t) {
 	if (Game.theGame.state ==1 && this.hit) {
+	    this.textStr.setVisible(false);
 	    if (!TextBrick.last) TextBrick.last = t;
 	    let p = t - TextBrick.last;
 	    if (p > 250) {
@@ -221,6 +220,7 @@ class TextBrick extends LImage {
 		if (this.currImg == this.numImgs) {
 		    this.currImg = 0;
 		    this.hit = false;
+		    this.textStr.setVisible(true);
 		    Game.theGame.setState(0);
 		}
 	    }
@@ -341,10 +341,10 @@ class Belt extends Shape {
 	this.by.push(this.by[0]+2*this.bh);
 	this.textStr = new TextStr("Kup: "+belt.kup,
 				   x,this.by[0]+3*this.bh,
-				   w,this.y+this.h-(this.by[0]+3*this.bh),false);
+				   w,this.y+this.h-(this.by[0]+3*this.bh));
     }
 
-    setBelt(belt) { this.belt = belt; }
+    setBelt(belt) { this.belt = belt; this.textStr.setWord("Kup: "+belt.kup); }
     
     draw(dctx = Game.theGame.ctx) {
 	// first 1/3 of belt
@@ -371,6 +371,7 @@ class Game {
 	if (Game.theGame) return Game.theGame;
 	Game.theGame = this;
 	
+	screen.orientation.lock('portrait');
 	this.canvas = document.getElementById("myCanvas");
 	this.ctx = Game.theGame.canvas.getContext("2d");
 
@@ -483,7 +484,7 @@ class Game {
 
     setWords() {
 	// get first word out
-	let cwords = this.allwords;
+	let cwords = this.allwords.slice();
 	let ix = getRandomArbitrary(0,cwords.length);
 	let rw = cwords[ix];
 	this.orig = Object.keys(rw)[0];
@@ -515,15 +516,17 @@ class Game {
     // -1 if hit wrong target
     // -2 if still flying
     checkHit(hitter) {
-	for (var b  of this.bricks) {
-	    if (b.intersect(hitter.hitpointx[hitter.currImg],hitter.y)) {
-		if (b.textStr.text == this.trans) {
-		    b.hit = true;
-		    this.setState(1);
-		    return 0;
-		}
-		else {
-		    return -1;
+	if (this.state == 0) {
+	    for (var b  of this.bricks) {
+		if (b.intersect(hitter.hitpointx[hitter.currImg],hitter.y)) {
+		    if (b.textStr.text == this.trans) {
+			b.hit = true;
+			this.setState(1);
+			return 0;
+		    }
+		    else {
+			return -1;
+		    }
 		}
 	    }
 	}
@@ -551,14 +554,17 @@ class Game {
 		    }
 		}
 		this.belt.setBelt(taek_data[this.beltix]);
+		console.log("Hullo",this.allwords);
 		this.allwords.concat(taek_data[this.beltix].words);
+		console.log("Hallo",this.allwords);
+		this.oldV++; // speed up as you go up the belts
 	    }
 	    return;
 	}
 	
 	if (state == 0 && this.state == 1) {
 	    this.setWords();
-	    TextBrick.v = this.oldV+1; // restart bricks
+	    TextBrick.v = this.oldV; // restart bricks
 	    for (var i = 0; i < this.bricks.length; i++) {
      		this.bricks[i].set(this.brickw*i, 0, this.brickw, this.brickh);
 	    }
