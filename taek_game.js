@@ -104,6 +104,7 @@ class TextStr extends Shape {
 	this.maxlen = mlen;
 	this.longest = longest;
 	this.fontSet = false;
+	this.fontSize = 40;
     }
 
     draw(dctx = Game.theGame.ctx) {
@@ -555,7 +556,7 @@ class Game {
 		}
 		this.belt.setBelt(taek_data[this.beltix]);
 		console.log("Hullo",this.allwords);
-		this.allwords.concat(taek_data[this.beltix].words);
+		this.allwords = this.allwords.concat(taek_data[this.beltix].words);
 		console.log("Hallo",this.allwords);
 		this.oldV++; // speed up as you go up the belts
 	    }

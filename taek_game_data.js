@@ -81,6 +81,7 @@ var taek_data = [
 	    { "Stance" : ["Sogi"] }
 	]
     },
+
     {	"name" : "yellow_tag",
 	"kup" : "9th",
 	"col" : ['#FFFFFF','#FFFF00','#FFFFFF'],
@@ -101,6 +102,7 @@ var taek_data = [
 	    { "Heaven and Earth" : ["Chon-Ji","19 Moves"] },
 	]
     },
+
     {	"name" : "yellow",
 	"kup" : "8th",
 	"col" : ['#FFFF00','#FFFF00','#FFFF00'],
@@ -122,6 +124,138 @@ var taek_data = [
 	    { "Dan-Gun" : ["Founder of Korea","2333BC","21 Moves"] },
 	    { "Three step sparring" : ["Sambo Matsoki"] },
 	    { "Green" : ["Growth"] },
+	]
+    },
+
+    {	"name" : "green_tag",
+	"kup" : "7th",
+	"col" : ['#FFFF00','#00FF00','#FFFF00'],
+	"words" : [
+	    { "Straight" : ["Sun"] },
+	    { "Thrust" : ["Tulgi"] },
+	    { "Finger" : ["Songarak"] },
+	    { "Finger tips\n(as group)" : ["Sonkut"] },
+	    { "Fixed stance" : ["Gojong Sugi"] },
+	    { "Wedging block" : ["Chechyo Magki"] },
+	    { "I've been grabbed" : ["Jappyosol Tae"] },
+	    { "Twisting release" : ["Bitulmyo Pulki"] },
+	    { "Sliding" : ["Mikulgi"] },
+	    { "Spot turn\n(centre line turn)" : ["Gujari Dolgi"] },
+	    { "Straight fingertip\nthrust" : ["Sun Sonkut\nTulgi"] },
+	    { "Backfist side\nstrike" : ["Dung Joomuck\nYop Taerigi"] },
+	    { "Side piercing\nkick" : ["Yop Cha Jirugi"] },
+	    { "Do-San" : ["Independence of\nKorea","Education of\nKorea","24 Moves","1878-1938","Island mountain"] },
+	]
+    },
+
+    {	"name" : "green",
+	"kup" : "6th",
+	"col" : ['#00FF00','#00FF00','#00FF00'],
+	"words" : [
+	    { "Back" : ["Dwit"] },
+	    { "Foot parts" : ["Han Bansin"] },
+	    { "Hand parts" : ["Sang Bansin"] },
+	    { "Back sole" : ["Dwit Kumchi"] },
+	    { "Back heel" : ["Dwit Chook"] },
+	    { "Vertical stance" : ["Soojik Sogi"] },
+	    { "Closed stance" : ["Moa Sogi"] },
+	    { "Bending ready\nstance" : ["Goburyo Chumbi\nSogi"] },
+	    { "Circurlar block" : ["Dollimyo Magki"] },
+	    { "Palm pushing\nblock" : ["Sonbadack Miro\nMagki"] },
+	    { "Knife hand\ninward strike" : ["Sonkal Anaero\nTaerigi"] },
+	    { "Side punch" : ["Yop Jirugi"] },
+	    { "Reverse turning\nkick" : ["Bandae Dollyo Chagi"] },
+	    { "Reverse side\nkick" : ["Bandae Yop Chagi"] },
+	    { "Reverse kinfe\nhand strike" : ["Sonkal Dung Taerigi"] },
+	    { "Semi-free\nsparring" : ["Ban Jayoo\nmatsoki"] },
+	    { "Blue" : ["Heaven"] },
+	    { "Won-Hyo" : ["Break of Dawn","28 moves","686 A.D.","Monk","Buddhism"] },
+	]
+    },
+
+    {	"name" : "blue_tag",
+	"kup" : "5th",
+	"col" : ['#00FF00','#0000FF','#00FF00'],
+	"words" : [
+	    { "Jumping" : ["Twigi"] },
+	    { "Elbow" : ["Palkup"] },
+	    { "Moorup" : ["Knee"] },
+	    { "X stance" : ["Kyocha Sogi"] },
+	    { "Double forearm\nblock" : ["Doo Palmok\nMagki"] },
+	    { "Palm hooking\nblock" : ["Sonbadack Golcho\nMagki"] },
+	    { "Graping block" : ["Butjaba Magki"] },
+	    { "X fist\npressing block" : ["Kyocha Joomuk\nNoollo Magki"] },
+	    { "Palm upward\nblock" : ["Sonbadack Ollyo\nMagki"] },
+	    { "Twin knifehand\nblock" : ["Sang Sonkal\nMagki"] },
+	    { "Uppset punch" : ["Dwijibo Jirugi"] },
+	    { "Hooking kick" : ["Golcho Chagi"] },
+	    { "Flat fingertip\nthrust" : ["Opun Sonkut\nTulgi"] },
+	    { "Crescent Kick" : ["Bandal Chagi"] },
+	    { "Twin fist\nvertical punch" : ["Sang Joomuk\nSewo Jirugi"] },
+	    { "Twin fist\nupset punch" : ["Sang Joomuk\nDwijibo Jirugi"] },
+	    { "Two step\nsparring" : ["Ibo Matsoki"] },
+	    { "Free sparring" : ["Jayoo Matsoki"] },
+	    { "Blue" : ["Heaven"] },
+	    { "Yul-Gok" : ["Valley of\nChestnuts","38 moves","1536-1583.","Scholar"] },
+	]
+    },
+
+    {	"name" : "blue",
+	"kup" : "4th",
+	"col" : ['#0000FF','#0000FF','#0000FF'],
+	"words" : [
+	    { "Mid section\nupset" : ["Dwijibo"] },
+	    { "Low section\nupset" : ["Dwijibun"] },
+	    { "Side sole" : ["Yo Bal Badak"] },
+	    { "Arc hand" : ["Bandal Son"] },
+	    { "Side fist" : ["Yop Joomuk"] },
+	    { "Rear foot\nstance" : ["Dwit Bal\nSogi"] },
+	    { "Low stance" : ["Nachuo Sogi"] },
+	    { "X first\nrising block" : ["Kyocha Joomuk\nChookyo Magki"] },
+	    { "Palm pressing\nblock" : ["Sonbadak Noollo\nMagki"] },
+	    { "Downward block" : ["Naeryo Magki"] },
+	    { "U shaped\nblock" : ["Digutja Magki","Mondongo Magki"] },
+	    { "Twin Straight\nforearm block" : ["Sang Sun\nPalmok Magki"] },
+	    { "Angle punch" : ["Giokja Jirugi"] },
+	    { "Back Kick" : ["Dwit Chagi"] },
+	    { "Reverse turning\nhooking kick" : ["Bandae Dollyo\nGoro Chagi"] },
+	    { "Red" : ["Danger"] },
+	    { "Joong-Gun" : ["Patriot","1910","Lui-Shung\nprison.","Hiro Bumi\nIto"] },
+	]
+    },
+    
+    {	"name" : "red_tag",
+	"kup" : "3rd",
+	"col" : ['#0000FF','#FF0000','#0000FF'],
+	"words" : [
+	    { "Flying" : ["Twimyo"] },
+	    { "Upset fingertips" : ["Dwijibun Sonkut"] },
+	    { "W shape\nblock" : ["San Magki"] },
+	    { "Double forearm\npushing block" : ["Doo Palmok\nMiro Magki"] },
+	    { "Knife hand low\nguarding block" : ["Sonkal Najundi\nDaebi Magki"] },
+	    { "Upset fingertip\nthrust" : ["Dwijibun Sonkut\nTulgi"] },
+	    { "Twin side\nelbow thrust" : ["Sang Yop\nPalkup Tulgi"] },
+	    { "Front pushing\nkick" : ["Ap Cha Milgi"] },
+	    { "Upper elbow\nstrike" : ["Wi Palkup\nTaerigi"] },
+	    { "Knee kick" : ["Moorup Chagi"] },
+	    { "One step\nsparring" : ["Ilbo Matsoki"] },
+	    { "Toi-Gye" : ["Returning\nStream","37 moves","16th Century.","Neo-Confusianism"] },
+	]
+    },
+
+    {	"name" : "red",
+	"kup" : "2nd",
+	"col" : ['#0000FF','#0000FF','#0000FF'],
+	"words" : [
+	    { "One leg stance" : ["Wae Bal Sogi"] },
+	]
+    }
+
+    {	"name" : "black_tag",
+	"kup" : "1st",
+	"col" : ['#FF0000','#000000','#FF0000'],
+	"words" : [
+	    { "One leg stance" : ["Wae Bal Sogi"] },
 	]
     }
 ];
