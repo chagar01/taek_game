@@ -399,7 +399,7 @@ class Game {
 	this.state = 0; 
 
 	this.hits = 0;
-	this.hitsToPass = 3; // hits to move onto next belt
+	this.hitsToPass = 2; // hits to move onto next belt
 	
 	this.brickw = Math.floor(this.canvas.width/nwords);
 	this.brickh = Math.floor(this.canvas.height/10);

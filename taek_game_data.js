@@ -245,17 +245,33 @@ var taek_data = [
 
     {	"name" : "red",
 	"kup" : "2nd",
-	"col" : ['#0000FF','#0000FF','#0000FF'],
+	"col" : ['#FF0000','#FF0000','#FF0000'],
 	"words" : [
-	    { "One leg stance" : ["Wae Bal Sogi"] },
+	    { "Instep" : ["Baldung"] },
+	    { "Reverse foot\nsword" : ["Balkal Dung"] },
+	    { "Pulling Release" : ["Dangimyo Pulgi"] },
+	    { "Upward punch" : ["Ollyo Jirugi"] },
+	    { "Vertical kick" : ["Sewo Chagi"] },
+	    { "Twisting kick" : ["Bituro Chagi"] },
+	    { "Knife hand\ndownward strike" : ["Sonkal Naeryo\nTaerigi"] },
+	    { "Side elbow\thrust" : ["Yop Palkup\nTulgia"] },
+	    { "Hwa-Rang" : ["29 Moves","Silla Dynasty","600AD.","Unification of Korea","Flowering Youth"] },
 	]
-    }
+    },
 
     {	"name" : "black_tag",
 	"kup" : "1st",
 	"col" : ['#FF0000','#000000','#FF0000'],
 	"words" : [
+	    { "Reverse Knifehand" : ["Sonkal Dung"] },
 	    { "One leg stance" : ["Wae Bal Sogi"] },
+	    { "Twin palm\nupward block" : ["Sang Sonbadak\nOllyo Magki"] },
+	    { "X knifehand\nchecking block" : ["Kyocha Sonkal\nMomchau Magki"] },
+	    { "Outer forearm\nmiddle inward\nblock" : ["Bakat Palmok\nKaunde Anaero\nMagki"] },
+	    { "Sweeping\nKick" : ["Suroh Chagi"] },
+	    { "Flying Kick" : ["Twimyo Chagi"] },
+	    { "Pressing Kick" : ["Noollo Jirugi"] },
+	    { "Choong-Moo" : ["Yi Sun Si","Kobukson","1592AD.","30 Moves","Loyalty to the King"] },
 	]
     }
 ];
