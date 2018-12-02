@@ -435,13 +435,13 @@ class Game {
 			  "./sprites/fisthurt.png",
 			  "./sprites/fist_flip.png",
 			  "./sprites/fisthurt_flip.png",
-			  "./sprites/fist.png",
-			  "./sprites/fisthurt.png",
-			  "./sprites/fist_flip.png",
-			  "./sprites/fisthurt_flip.png"]
+			  "./sprites/foot.png",
+			  "./sprites/foothurt.png",
+			  "./sprites/foot_flip.png",
+			  "./sprites/foothurt_flip.png"]
 
 	let hitpointsx = [0.75, 0.75, 0.25, 0.25,
-			  0.75, 0.75, 0.25, 0.25];
+			  0.5, 0.5, 0.5, 0.5];
 	
 	this.hit  = new Hitter(hitsprites,hitpointsx,backgroundy,backgroundh);
 
