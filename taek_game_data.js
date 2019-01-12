@@ -90,7 +90,7 @@ var taek_data = [
 	    { "Right" : ["Orun"] },
 	    { "Pattern" : ["Tul"] },
 	    { "Ball of Foot" : ["Ap Kumchi"] },
-	    { "Foot Sward" : ["Balkal"] },
+	    { "Foot Sword" : ["Balkal"] },
 	    { "Head" : ["Mori"] },
 	    { "L Stance" : ["Niunja Sogi"] },
 	    { "Rising Block" : ["Chookyo\nMagki"] },
